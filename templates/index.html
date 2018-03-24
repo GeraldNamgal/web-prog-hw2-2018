@@ -7,21 +7,13 @@
         <title>Chat Place</title>
     </head>
     <body>
-        <h1>Messages</h1>
-
-        <ul id="messages">
-            {% for message in messages %}
-                <li>{{ message.displayName }} [{{ message.timestamp }}]: {{ message.text }}</li>
-            {% endfor %}
-        </ul>
+        <h1>Channel: "<span id="channelTitle"></span>"</h1>
+        <h2>Messages</h2>
+        <ul id="messages"></ul>
 
         <form id="newDisplayName">
             <input id="displayName" type="text" placeholder="Display Name">
-                {% if name == "Anonymous" %}
-                    <button id="createNameButton" class="displayButton">Create Display Name</button>
-                {% else %}
-                    <button class="displayButton">Change Display Name</button>
-                {% endif %}
+                <button id="displayNameButton"></button>
         </form>
 
         <form id="newMessage">
@@ -31,7 +23,10 @@
 
         <form id="newChannel">
             <input id="channelName" type="text" placeholder="Channel Name">
-            <button>Create Channel</button>
+            <button id="channelButton">Create Channel</button>
         </form>
+
+        <h2>Channels</h2>
+        <ul id="channels"></ul>
     </body>
 </html>
