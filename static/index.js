@@ -1,7 +1,6 @@
-// Global variables
-var defaultChannel = "general";
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Global variables
+    const defaultChannel = "general";
 
     // By default, buttons are disabled
     document.querySelectorAll('button').forEach(button => {
@@ -92,12 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         /*
-        // TODO: When a user clicks on a channel in the channel list to change channels
-        document.querySelector('???').onclick = function(event) {
-            // Alert the server of the channel change event
-            socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelName});
-        };
-
         // TODO: When a user submits a display name
         document.querySelector('#newDisplayName').onsubmit = function(event) {
             // Retrieve display name
@@ -138,7 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Populate list of channels from local storage to the page
             for (i = 0; i < clientChannels.length; i++) {
                 li = document.createElement('li');
-                li.innerHTML = `${clientChannels[i]}`;
+                li.innerHTML = `<a href="">${clientChannels[i]}</a>`;
+                // Store string in a variable so value doesn't change for onclick event
+                const newChannel = clientChannels[i];
+                li.onclick = function(event) {
+                    // Stop form from submitting
+                    event.preventDefault();
+                    socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': newChannel});
+                };
                 document.querySelector('#channels').append(li);
             }
             // If there are client channels that aren't on server, create them on server
@@ -154,10 +154,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!clientChannels.includes(data['serverChannels'][i])) {
                     // Add channel to list of channels on page
                     li = document.createElement('li');
-                    li.innerHTML = `${data['serverChannels'][i]}`;
+                    li.innerHTML = `<a href="">${data['serverChannels'][i]}</a>`;
+                    // Store string in a variable so value doesn't change for onclick event
+                    const newChannel = data['serverChannels'][i];
+                    li.onclick = function(event) {
+                        // Stop form from submitting
+                        event.preventDefault();
+                        socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': newChannel});
+                    };
                     document.querySelector('#channels').append(li);
                     // Add channel to client channels list
-                    clientChannels.push(data['serverChannels'][i])
+                    clientChannels.push(data['serverChannels'][i]);
                 }
             }
         }
@@ -182,7 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('channels', JSON.stringify(clientChannels));
                 // Add channel to list of channels displayed on page
                 const li = document.createElement('li');
-                li.innerHTML = `${data['channelName']}`;
+                li.innerHTML = `<a href="">${data['channelName']}</a>`;
+                // Store string in a variable so value doesn't change for onclick event
+                const newChannel = data['channelName'];
+                li.onclick = function(event) {
+                    // Stop form from submitting
+                    event.preventDefault();
+                    socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': newChannel});
+                };
                 document.querySelector('#channels').append(li);
             }
         }
@@ -190,12 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When a channel change occurs
     socket.on('announce channel change', data => {
+        // Clear messages in list from last channel (and in case refresh occurs, etc. to avoid duplicating them on page)
+        document.querySelector('#messages').innerHTML = '';
         // Change the user's current channel in local storage
         localStorage.setItem('currentChannel', data['channelName']);
         // Change channel title in heading
-        document.querySelector('#channelTitle').innerHTML = data['channelName'];
-        // Clear messages
-        document.querySelector('#messages').innerHTML = '';
+        document.querySelector('#channelTitle').innerHTML = localStorage.getItem('currentChannel');
         // Repopulate messages with those from new channel
         var li;
         for (i = 0; i < data['messageList'].length; i++) {
