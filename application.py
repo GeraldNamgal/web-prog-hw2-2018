@@ -7,26 +7,26 @@ from datetime import datetime
 from pytz import timezone
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 socketio = SocketIO(app)
 
 # Global variables
-defaultChannel = "general"
+defaultChannel = 'general'
 channels = [Channel(defaultChannel)]
 
-@app.route("/")
+@app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template('index.html')
 
-@socketio.on("submit synchronize channels")
+@socketio.on('submit synchronize channels')
 def syncChannels():
     # Send channels on server to client
     serverChannels = []
     for channel in channels:
         serverChannels.append(channel.name)
-    emit("announce synchronize channels", {'serverChannels': serverChannels})
+    emit('announce synchronize channels', {'serverChannels': serverChannels})
 
-@socketio.on("submit new channel")
+@socketio.on('submit new channel')
 def newChannel(data):
     # If channel is new to server, add it
     found = False
@@ -37,9 +37,9 @@ def newChannel(data):
     if not found:
         # Append new channel object to list of channels
         channels.append(Channel(data['channelName'].strip()))
-        emit("announce new channel", {'channelName': data['channelName'].strip()}, broadcast=True)
+        emit('announce new channel', {'channelName': data['channelName'].strip()}, broadcast=True)
 
-@socketio.on("submit channel change")
+@socketio.on('submit channel change')
 def channelChange(data):
     # Remove user from current channel if already on a channel
     if 'from' in data:
@@ -52,15 +52,15 @@ def channelChange(data):
             messageList = []
             for message in channel.messages:
                 messageList.append(message.__dict__)
-            emit("announce channel change", {'channelName': channel.name, 'messageList': messageList})
+            emit('announce channel change', {'channelName': channel.name, 'messageList': messageList})
 
-@socketio.on("submit message")
+@socketio.on('submit message')
 def message(data):
     # Create a Message object
-    message = Message(data['displayName'], datetime.now(timezone("US/Eastern")).strftime("%m-%d-%Y, %I:%M %p").lstrip("0").replace(" 0", " "), data["message"])
+    message = Message(data['displayName'], datetime.now(timezone('US/Eastern')).strftime('%m-%d-%Y, %I:%M %p').lstrip('0').replace(' 0', ' '), data['message'])
     # Find the channel to append the message to
     for channel in channels:
         if channel.name.lower() == data['channelName'].strip().lower():
             channel.messages.append(message)
             # Broadcast message to channel only
-            emit("announce message", {'message': message.__dict__}, room=channel.name)
+            emit('announce message', {'message': message.__dict__}, room=channel.name)

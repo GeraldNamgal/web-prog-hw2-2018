@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Global variables
-    const defaultChannel = "general";
+    const defaultChannel = 'general';
 
     // By default, buttons are disabled
     document.querySelectorAll('button').forEach(button => {
@@ -46,9 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('displayName', 'Anonymous');
         // Change display name button accordingly
         if(localStorage.getItem('displayName') == 'Anonymous')
-            document.getElementById('displayNameButton').innerHTML = "Create Display Name";
+            document.getElementById('displayNameButton').innerHTML = 'Create Display Name';
         else
-            document.getElementById('displayNameButton').innerHTML = "Change Display Name";
+            document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
 
         // TODO: (ERASE LATER; testing synchronize):
         //var testArray = ['clientItem1', 'clientItem2', 'clientItem3']
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const displayName = document.querySelector('#displayName').value;
             // Change the text on the submit button if this was first display name created
             if((!localStorage.getItem('displayName')) || (localStorage.getItem('displayName') == 'Anonymous'))
-                document.getElementById('displayNameButton').innerHTML = "Change Display Name";
+                document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
             // Add display name to local storage
             localStorage.setItem('displayName', displayName);
             // Clear input field and disable button again
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Populate list of channels from local storage to the page
             for (i = 0; i < clientChannels.length; i++) {
                 li = document.createElement('li');
-                li.innerHTML = `<a href="">${clientChannels[i]}</a>`;
+                li.innerHTML = `<a href=''>${clientChannels[i]}</a>`;
                 // Store string in a variable so value doesn't change for onclick event
                 const newChannel = clientChannels[i];
                 li.onclick = function(event) {
@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!clientChannels.includes(data['serverChannels'][i])) {
                     // Add channel to list of channels on page
                     li = document.createElement('li');
-                    li.innerHTML = `<a href="">${data['serverChannels'][i]}</a>`;
+                    li.innerHTML = `<a href=''>${data['serverChannels'][i]}</a>`;
                     // Store string in a variable so value doesn't change for onclick event
                     const newChannel = data['serverChannels'][i];
                     li.onclick = function(event) {
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('channels', JSON.stringify(clientChannels));
                 // Add channel to list of channels displayed on page
                 const li = document.createElement('li');
-                li.innerHTML = `<a href="">${data['channelName']}</a>`;
+                li.innerHTML = `<a href=''>${data['channelName']}</a>`;
                 // Store string in a variable so value doesn't change for onclick event
                 const newChannel = data['channelName'];
                 li.onclick = function(event) {
