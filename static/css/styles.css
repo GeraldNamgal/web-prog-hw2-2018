@@ -1,6 +1,6 @@
 /* Sidebar code referenced from: https://www.w3schools.com/howto/howto_css_fixed_sidebar.asp */
 #channelSelection {
-    width: 130px;
+    width: 140px;
     position: fixed;
     z-index: 1;
     top: 70px;
@@ -16,7 +16,7 @@
 }
 
 #main {
-    margin-left: 165px; /* Same width as the sidebar + left position in px */
+    margin-left: 175px; /* Same width as the sidebar + left position in px */
     font-size: 15px; /* Increased text to enable scrolling */
     padding: 0px 10px;
 }
@@ -56,6 +56,11 @@ ul {
     background-color: SeaShell;
 }
 
+#privateHeading {
+    background-color: SeaShell;
+    font-size: 23px;
+}
+
 #channels {
     padding-left: 0;
 }
@@ -79,4 +84,9 @@ ul {
 
 .singleMessage {
     font-size: 17px;
+}
+
+.screenname {
+    font-weight: bold;
+    font-size: 16px;
 }

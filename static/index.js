@@ -33,18 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#channelButton').disabled = true;
     };
 
-/** Socket / client-server interface code starts here: **/
+/** Socket or client-server interface code starts here: **/
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // When connected, configure buttons
     socket.on('connect', () => {
-
-        // TODO: (ERASE LATER; testing synchronize):
-        //var testArray = ['clientItem1', 'clientItem2', 'clientItem3']
-        //localStorage.setItem('channels', JSON.stringify(testArray));
-
         // Synchronize the channels between client and server
         socket.emit('submit synchronize channels');
 
@@ -90,15 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
         };
 
-        // TODO: When a user submits a display name
+        // When a user submits a display name
         document.querySelector('#newDisplayName').onsubmit = function(event) {
             // Retrieve display name
             const displayName = document.querySelector('#displayName').value;
-            // Change the text on the submit button if this was first display name created
-            if((!localStorage.getItem('displayName')) || (localStorage.getItem('displayName') == 'Anonymous'))
-                document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
+            // Change the text on the submit button
+            document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
             // Add display name to local storage
-            localStorage.setItem('displayName', displayName);
+            localStorage.setItem('displayName', displayName.trim());
             // Clear input field and disable button again
             document.querySelector('#displayName').value = '';
             document.querySelector('#displayNameButton').disabled = true;
@@ -215,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         var li;
         for (i = 0; i < data['messageList'].length; i++) {
             li = document.createElement('li');
-            li.innerHTML = `${data['messageList'][i].displayName} [${data['messageList'][i].timestamp}]: ${data['messageList'][i].text}`;
+            li.innerHTML = `<span class='screenname'>${data['messageList'][i].displayName}</span> [${data['messageList'][i].timestamp}]: ${data['messageList'][i].text}`;
             li.className = 'singleMessage';
             document.querySelector('#messages').append(li);
         }
@@ -224,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // When a new message is announced
     socket.on('announce message', data => {
         const li = document.createElement('li');
-        li.innerHTML = `${data['message'].displayName} [${data['message'].timestamp}]: ${data['message'].text}`;
+        li.innerHTML = `<span class='screenname'>${data['message'].displayName}</span> [${data['message'].timestamp}]: ${data['message'].text}`;
         li.className = 'singleMessage';
         document.querySelector('#messages').append(li);
     });

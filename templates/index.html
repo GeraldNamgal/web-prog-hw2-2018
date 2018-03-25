@@ -3,16 +3,18 @@
     <head>
         <script type='text/javascript' src='//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js'></script>
         <script type='text/javascript' src='{{ url_for('static', filename='index.js') }}'></script>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css' integrity='sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm' crossorigin='anonymous'>
+        <script src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js' integrity='sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl' crossorigin='anonymous'></script>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <link rel='stylesheet' href='{{ url_for('static', filename='css/styles.css') }}'>
-        <title>Chat Place</title>
+        <title>Flack</title>
     </head>
     <body>
         <div id='channelSelection'>
-            <h3 id="channelsHeading">Channels</h3>
+            <h3 id='channelsHeading'>Channels</h3>
             <ul id='channels'></ul>
+            <h3 id="privateHeading">Private Chat</h3>
+            <ul id='privateChats'></ul>
         </div>
 
         <div id='main'>

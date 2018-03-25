@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from classes import Message, Channel
 from datetime import datetime
@@ -13,6 +13,8 @@ socketio = SocketIO(app)
 # Global variables
 defaultChannel = 'general'
 channels = [Channel(defaultChannel)]
+messageLimit = 100
+users = []
 
 @app.route('/')
 def index():
@@ -61,6 +63,24 @@ def message(data):
     # Find the channel to append the message to
     for channel in channels:
         if channel.name.lower() == data['channelName'].strip().lower():
+            if channel.numMessages > (messageLimit - 1):
+                channel.messages.pop(0)
+                channel.numMessages -= 1
             channel.addMessage(message)
             # Broadcast message to channel only
             emit('announce message', {'message': message.__dict__}, room=channel.name)
+
+@socketio.on('submit get SID')
+def getSID(data):
+    SID = request.sid
+    users.append({'username': data['username'], 'SID': SID})
+    emit('announce get SID', {'SID': SID})
+
+@socketio.on('submit disconnected')
+def disconnected():
+    emit('announce disconnected', broadcast=True)
+# TODO:
+"""
+@socketio.on('submit synchronize SIDs')
+def syncSIDs(data):
+"""
