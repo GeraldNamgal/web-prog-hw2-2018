@@ -61,6 +61,6 @@ def message(data):
     # Find the channel to append the message to
     for channel in channels:
         if channel.name.lower() == data['channelName'].strip().lower():
-            channel.messages.append(message)
+            channel.addMessage(message)
             # Broadcast message to channel only
             emit('announce message', {'message': message.__dict__}, room=channel.name)

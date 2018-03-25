@@ -1,3 +1,82 @@
+/* Sidebar code referenced from: https://www.w3schools.com/howto/howto_css_fixed_sidebar.asp */
+#channelSelection {
+    width: 130px;
+    position: fixed;
+    z-index: 1;
+    top: 70px;
+    left: 10px;
+    background: white;
+    overflow-x: hidden;
+    padding: 8px 0;
+    margin-left: 20px;
+    border: 1px solid black;
+    text-align: center;
+    margin-top: 40px;
+    padding-bottom: 0px;
+}
+
+#main {
+    margin-left: 165px; /* Same width as the sidebar + left position in px */
+    font-size: 15px; /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+@media screen and (max-height: 450px) {
+    #channelSelection {padding-top: 15px;}
+    #channelSelection a {font-size: 18px;}
+}
+
+body {
+    background-color: BurlyWood;
+    font-family: serif;
+    margin: 15px;
+}
+
+h1 {
+    font-size: 70px;
+    color: firebrick;
+    text-align:center;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+h1, h3 {
+    font-style: oblique;
+}
+
+#channelTitle {
+    font-style: normal;
+}
+
 ul {
-  list-style-type: none;
+    list-style-type: none;
+}
+
+#channelsHeading {
+    background-color: SeaShell;
+}
+
+#channels {
+    padding-left: 0;
+}
+
+#channels li {
+    padding-bottom: 1.5px;
+}
+
+.channelLink:hover {
+    background-color: lightgray;
+}
+
+#displayName {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.channelLink {
+    font-size: 17px;
+}
+
+.singleMessage {
+    font-size: 17px;
 }

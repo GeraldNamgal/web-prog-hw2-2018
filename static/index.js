@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+/** Client-specific code **/
+
     // Global variables
     const defaultChannel = 'general';
 
@@ -31,15 +33,27 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#channelButton').disabled = true;
     };
 
-
-/****************************************************************************************************/
-
+/** Socket / client-server interface code starts here: **/
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // When connected, configure buttons
     socket.on('connect', () => {
+
+        // TODO: (ERASE LATER; testing synchronize):
+        //var testArray = ['clientItem1', 'clientItem2', 'clientItem3']
+        //localStorage.setItem('channels', JSON.stringify(testArray));
+
+        // Synchronize the channels between client and server
+        socket.emit('submit synchronize channels');
+
+        // If user is new, take them to default channel
+        if(!localStorage.getItem('currentChannel'))
+            socket.emit('submit channel change', {'to': defaultChannel});
+        // If returning user, take them to channel they were on previously
+        else
+            socket.emit('submit channel change', {'to': localStorage.getItem('currentChannel')});
 
         // When user first opens app give them a default display name if they don't already have one
         if(!localStorage.getItem('displayName'))
@@ -49,33 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('displayNameButton').innerHTML = 'Create Display Name';
         else
             document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
-
-        // TODO: (ERASE LATER; testing synchronize):
-        //var testArray = ['clientItem1', 'clientItem2', 'clientItem3']
-        //localStorage.setItem('channels', JSON.stringify(testArray));
-
-        // Synchronize the channels between client and server
-        socket.emit('submit synchronize channels');
-
-        // When a user submits a channel to create
-        document.querySelector('#newChannel').onsubmit = function(event) {
-            // Retrieve channel name
-            const channelName = document.querySelector('#channelName').value;
-            // Alert server of the create channel event
-            socket.emit('submit new channel', {'channelName': channelName})
-            // Clear input field and disable button again
-            document.querySelector('#channelName').value = '';
-            document.querySelector('#channelButton').disabled = true;
-            // Stop form from submitting
-            event.preventDefault();
-        };
-
-        // If user is new, take them to default channel
-        if(!localStorage.getItem('currentChannel'))
-            socket.emit('submit channel change', {'to': defaultChannel});
-        // If returning user, take them to channel they were on previously
-        else
-            socket.emit('submit channel change', {'to': localStorage.getItem('currentChannel')});
 
         // When a user submits a message
         document.querySelector('#newMessage').onsubmit = function(event) {
@@ -90,7 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
         };
 
-        /*
+        // When a user submits a channel to create
+        document.querySelector('#newChannel').onsubmit = function(event) {
+            // Retrieve channel name
+            const channelName = document.querySelector('#channelName').value;
+            // Alert server of the create channel event
+            socket.emit('submit new channel', {'channelName': channelName})
+            // Clear input field and disable button again
+            document.querySelector('#channelName').value = '';
+            document.querySelector('#channelButton').disabled = true;
+            // Stop form from submitting
+            event.preventDefault();
+        };
+
         // TODO: When a user submits a display name
         document.querySelector('#newDisplayName').onsubmit = function(event) {
             // Retrieve display name
@@ -108,11 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Alert user that display name was changed
             alert('Display name was updated.');
         };
-        */
     });
 
-
-/****************************************************************************************************/
+/** Responding-to-server code starts here: **/
 
     // (Code referenced from: https://www.kirupa.com/html5/storing_and_retrieving_an_array_from_local_storage.htm)
     socket.on('announce synchronize channels', data => {
@@ -122,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         var clientChannels = [];
         if (localStorage.getItem('channels')) {
             var retrievedData = localStorage.getItem('channels');
+            // Convert retrieved data from local storage to an array
             clientChannels = JSON.parse(retrievedData);
         }
         // Declare an 'li' tag variable to put channels on page
@@ -131,7 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Populate list of channels from local storage to the page
             for (i = 0; i < clientChannels.length; i++) {
                 li = document.createElement('li');
-                li.innerHTML = `<a href=''>${clientChannels[i]}</a>`;
+                li.innerHTML = `${clientChannels[i]}`;
+                li.className = 'channelLink';
                 // Store string in a variable so value doesn't change for onclick event
                 const newChannel = clientChannels[i];
                 li.onclick = function(event) {
@@ -147,14 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     socket.emit('submit new channel', {'channelName': clientChannels[i]})
             }
         }
-        // If there are channels on the server
+        // If there are channels on the server that we received back
         if (data['serverChannels'].length > 0) {
             // If there are channels on server that aren't on client, add them to client channels and to page
             for (i = 0; i < data['serverChannels'].length; i++) {
                 if (!clientChannels.includes(data['serverChannels'][i])) {
                     // Add channel to list of channels on page
                     li = document.createElement('li');
-                    li.innerHTML = `<a href=''>${data['serverChannels'][i]}</a>`;
+                    li.innerHTML = `${data['serverChannels'][i]}`;
+                    li.className = 'channelLink';
                     // Store string in a variable so value doesn't change for onclick event
                     const newChannel = data['serverChannels'][i];
                     li.onclick = function(event) {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        // Set clientChannels list to local storage
+        // Set clientChannels list to local storage in string (i.e., valid) form
         localStorage.setItem('channels', JSON.stringify(clientChannels));
     });
 
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             var retrievedData = localStorage.getItem('channels');
             clientChannels = JSON.parse(retrievedData);
         }
-        // If there were channels in local storage
+        // If there are channels in local storage
         if (clientChannels.length > 0) {
             // If channel is new to client
             if (!clientChannels.includes(data['channelName'])) {
@@ -189,7 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('channels', JSON.stringify(clientChannels));
                 // Add channel to list of channels displayed on page
                 const li = document.createElement('li');
-                li.innerHTML = `<a href=''>${data['channelName']}</a>`;
+                li.innerHTML = `${data['channelName']}`;
+                li.className = 'channelLink';
                 // Store string in a variable so value doesn't change for onclick event
                 const newChannel = data['channelName'];
                 li.onclick = function(event) {
@@ -209,12 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Change the user's current channel in local storage
         localStorage.setItem('currentChannel', data['channelName']);
         // Change channel title in heading
-        document.querySelector('#channelTitle').innerHTML = localStorage.getItem('currentChannel');
+        document.querySelector('#channelTitle').innerHTML = data['channelName'];
         // Repopulate messages with those from new channel
         var li;
         for (i = 0; i < data['messageList'].length; i++) {
             li = document.createElement('li');
             li.innerHTML = `${data['messageList'][i].displayName} [${data['messageList'][i].timestamp}]: ${data['messageList'][i].text}`;
+            li.className = 'singleMessage';
             document.querySelector('#messages').append(li);
         }
     });
@@ -223,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('announce message', data => {
         const li = document.createElement('li');
         li.innerHTML = `${data['message'].displayName} [${data['message'].timestamp}]: ${data['message'].text}`;
+        li.className = 'singleMessage';
         document.querySelector('#messages').append(li);
     });
 });
