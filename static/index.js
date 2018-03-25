@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else
             document.getElementById('displayNameButton').innerHTML = "Change Display Name";
 
-        // TODO: (ERASE LATER; testing synchronize)
+        // TODO: (ERASE LATER; testing synchronize):
         //var testArray = ['clientItem1', 'clientItem2', 'clientItem3']
         //localStorage.setItem('channels', JSON.stringify(testArray));
 

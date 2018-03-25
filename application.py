@@ -16,7 +16,6 @@ channels = [Channel(defaultChannel)]
 
 @app.route("/")
 def index():
-    # TODO: Return channel that user was on with messages from that channel
     return render_template("index.html")
 
 @socketio.on("submit synchronize channels")
