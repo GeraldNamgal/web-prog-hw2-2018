@@ -1,8 +1,13 @@
 class Message:
-    def __init__(self, displayName, timestamp, text):
+    counter = 0
+
+    def __init__(self, displayName, timestamp, text, sid):
         self.displayName = displayName
         self.timestamp = timestamp
         self.text = text
+        self.sid = sid
+        self.id = Message.counter
+        Message.counter += 1
 
 class Channel:
     def __init__(self, name):

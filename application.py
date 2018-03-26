@@ -14,7 +14,6 @@ socketio = SocketIO(app)
 defaultChannel = 'general'
 channels = [Channel(defaultChannel)]
 messageLimit = 100
-users = []
 
 @app.route('/')
 def index():
@@ -59,7 +58,7 @@ def channelChange(data):
 @socketio.on('submit message')
 def message(data):
     # Create a Message object
-    message = Message(data['displayName'], datetime.now(timezone('US/Eastern')).strftime('%m-%d-%Y, %I:%M %p').lstrip('0').replace(' 0', ' '), data['message'])
+    message = Message(data['displayName'], datetime.now(timezone('US/Eastern')).strftime('%m-%d-%Y, %I:%M %p').lstrip('0').replace(' 0', ' '), data['message'], data['sid'])
     # Find the channel to append the message to
     for channel in channels:
         if channel.name.lower() == data['channelName'].strip().lower():
@@ -70,17 +69,31 @@ def message(data):
             # Broadcast message to channel only
             emit('announce message', {'message': message.__dict__}, room=channel.name)
 
-@socketio.on('submit get SID')
-def getSID(data):
-    SID = request.sid
-    users.append({'username': data['username'], 'SID': SID})
-    emit('announce get SID', {'SID': SID})
+@socketio.on('submit get sid')
+def getSID():
+    sid = request.sid
+    emit('announce get sid', {'sid': sid})
 
-@socketio.on('submit disconnected')
-def disconnected():
-    emit('announce disconnected', broadcast=True)
-# TODO:
-"""
-@socketio.on('submit synchronize SIDs')
-def syncSIDs(data):
-"""
+@socketio.on('submit get my messages')
+def getChannels(data):
+    # Return the messages for the channel
+    for channel in channels:
+        if channel.name.lower() == data['channelName'].strip().lower():
+            messageList = []
+            for message in channel.messages:
+                if message.sid == data['sid']:
+                    messageList.append(message.__dict__)
+            emit('announce get my messages', {'messageList': messageList})
+
+@socketio.on('submit delete message')
+def deleteMessage(data):
+    for channel in channels:
+        if channel.name.lower() == data['channelName'].strip().lower():
+            messageList = []
+            newList = []
+            for message in channel.messages:
+                if (message.id != data['msgID']):
+                    newList.append(message)
+                    messageList.append(message.__dict__)
+            channel.messages = newList
+            emit('announce delete message', {'messageList': messageList}, room=channel.name)

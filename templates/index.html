@@ -13,8 +13,6 @@
         <div id='channelSelection'>
             <h3 id='channelsHeading'>Channels</h3>
             <ul id='channels'></ul>
-            <h3 id="privateHeading">Private Chat</h3>
-            <ul id='privateChats'></ul>
         </div>
 
         <div id='main'>
@@ -23,18 +21,23 @@
             <h3>Messages:</h3>
             <ul id='messages'></ul>
 
+            <h3 id='deleteHeading'></h3>
+            <ul id='deletees'></ul>
+
             <form id='newMessage'>
-                <textarea id='message' rows='4' cols='50' placeholder='Enter Message Here'></textarea>
+                <textarea id='message' rows='4' cols='50' placeholder=' Enter Message'></textarea>
                 <button id='messageButton'>Submit Message</button>
             </form>
 
+            <button id='deleteButton'>Delete a Message</button>
+
             <form id='newDisplayName'>
-                <input id='displayName' type='text' placeholder='Display Name'>
+                <input id='displayName' type='text' placeholder=' Enter Display Name'>
                 <button id='displayNameButton'></button>
             </form>
 
             <form id='newChannel'>
-                <input id='channelName' type='text' placeholder='Channel Name'>
+                <input id='channelName' type='text' placeholder=' Enter Channel Name'>
                 <button id='channelButton'>Create Channel</button>
             </form>
         </div>

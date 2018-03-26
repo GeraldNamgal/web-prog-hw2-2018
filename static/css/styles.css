@@ -73,6 +73,14 @@ ul {
     background-color: lightgray;
 }
 
+#deleteButton {
+    margin-bottom: 6px;
+}
+
+.deleteMessage:hover {
+    background-color: lightgray;
+}
+
 #displayName {
     margin-top: 3px;
     margin-bottom: 3px;
@@ -89,4 +97,18 @@ ul {
 .screenname {
     font-weight: bold;
     font-size: 16px;
+}
+
+#deleteReturnLink:hover {
+    background-color: lightgray;
+}
+
+#deleteReturnLink {
+    font-weight: bold;
+    color: blue;
+}
+
+#deleteReturn {
+    padding-top: 12px;
+    font-size: 20px;
 }
