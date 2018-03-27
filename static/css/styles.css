@@ -1,12 +1,13 @@
 /* Sidebar code referenced from: https://www.w3schools.com/howto/howto_css_fixed_sidebar.asp */
 #channelSelection {
-    width: 140px;
+    width: 160px;
     position: fixed;
     z-index: 1;
     top: 70px;
     left: 10px;
+    bottom: 70px;
     background: white;
-    overflow-x: hidden;
+    overflow-x: scroll;
     padding: 8px 0;
     margin-left: 20px;
     border: 1px solid black;
@@ -16,7 +17,7 @@
 }
 
 #main {
-    margin-left: 175px; /* Same width as the sidebar + left position in px */
+    margin-left: 196px; /* Same width as the sidebar + left position in px */
     font-size: 15px; /* Increased text to enable scrolling */
     padding: 0px 10px;
 }
