@@ -1,5 +1,9 @@
+// Debugging tools:
+var dict = {'currentChannel': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'sid': localStorage.getItem('sid')};
+var channels = `channels: ${localStorage.getItem('channels')}`;
+
 document.addEventListener('DOMContentLoaded', () => {
-/** Client-specific code **/
+// Client-specific code
 
     // Global variables
     const defaultChannel = 'general';
@@ -34,47 +38,42 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#channelButton').disabled = true;
     };
 
-/** Socket or client-server interface code starts here: **/
+// Socket or client-server interface code starts here:
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // When connected, configure buttons
     socket.on('connect', () => {
-        // Synchronize the channels between client and server
-        socket.emit('submit synchronize channels');
+
+        console.log('- When client first connects to server, local variables:');
+        console.log(dict);
+        console.log(channels);
 
         // Get client's session id
         socket.emit('submit get sid');
 
-        // If user is new, take them to default channel
+        // Synchronize the channels between client and server
+        socket.emit('submit synchronize channels');
+
+        console.log(`- After synchronize channels called, local channels:`);
+        console.log(channels);
+
+        // If user is new, take them to default channel, else take them to channel they were on previously
         if(!localStorage.getItem('currentChannel'))
             socket.emit('submit channel change', {'to': defaultChannel});
-        // If returning user, take them to channel they were on previously
         else
             socket.emit('submit channel change', {'to': localStorage.getItem('currentChannel')});
 
         // When user first opens app give them a default display name if they don't already have one
         if(!localStorage.getItem('displayName'))
             localStorage.setItem('displayName', 'Anonymous');
+
         // Change display name button accordingly
         if(localStorage.getItem('displayName') == 'Anonymous')
             document.getElementById('displayNameButton').innerHTML = 'Create Display Name';
         else
             document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
-
-        // When a user submits a message
-        document.querySelector('#newMessage').onsubmit = function(event) {
-            // Retrieve message
-            const message = document.querySelector('#message').value;
-            // Alert the server of a message-has-been-submitted event
-            socket.emit('submit message', {'channelName': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'message': message, 'sid': localStorage.getItem('sid')});
-            // Clear input field and disable button again
-            document.querySelector('#message').value = '';
-            document.querySelector('#messageButton').disabled = true;
-            // Stop form from submitting
-            event.preventDefault();
-        };
 
         // When a user submits a channel to create
         document.querySelector('#newChannel').onsubmit = function(event) {
@@ -85,6 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear input field and disable button again
             document.querySelector('#channelName').value = '';
             document.querySelector('#channelButton').disabled = true;
+            // Stop form from submitting
+            event.preventDefault();
+        };
+
+        // When a user submits a message
+        document.querySelector('#newMessage').onsubmit = function(event) {
+            // Retrieve message
+            const message = document.querySelector('#message').value;
+            // Alert the server of a message-has-been-submitted event
+            socket.emit('submit message', {'channelName': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'message': message, 'sid': localStorage.getItem('sid')});
+            // Clear input field and disable button again
+            document.querySelector('#message').value = '';
+            document.querySelector('#messageButton').disabled = true;
             // Stop form from submitting
             event.preventDefault();
         };
@@ -106,13 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Display name was updated.');
         };
 
-        // TODO: When a user hits the Delete Messages button
+        // When a user hits the Delete Messages button
         document.querySelector('#deleteButton').onclick = function() {
-            socket.emit('submit get my messages', {'channelName': localStorage.getItem('currentChannel'), 'sid': localStorage.getItem('sid')});
+            socket.emit('submit get messages to delete', {'channelName': localStorage.getItem('currentChannel'), 'sid': localStorage.getItem('sid')});
         };
     });
 
-/** Responding-to-server code starts here: **/
+// Responding-to-server code starts here:
+
+    // When a get sid is announced
+    socket.on('announce get sid', data => {
+        localStorage.setItem('sid', data['sid']);
+    });
 
     // (Code referenced from: https://www.kirupa.com/html5/storing_and_retrieving_an_array_from_local_storage.htm)
     socket.on('announce synchronize channels', data => {
@@ -134,20 +151,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 li = document.createElement('li');
                 li.innerHTML = `${clientChannels[i]}`;
                 li.className = 'channelLink';
-                // Store string in a variable so value doesn't change for onclick event
-                const newChannel = clientChannels[i];
-                const oldChannel = localStorage.getItem('currentChannel');
+                const channelLinkName = clientChannels[i];
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
-                    socket.emit('submit channel change', {'from': oldChannel, 'to': newChannel});
+                    socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                 };
                 document.querySelector('#channels').append(li);
             }
             // If there are client channels that aren't on server, create them on server
             for (i = 0; i < clientChannels.length; i++) {
                 if (!data['serverChannels'].includes(clientChannels[i]))
-                    socket.emit('submit new channel', {'channelName': clientChannels[i]})
+                    socket.emit('submit new channel', {'channelName': clientChannels[i]});
             }
         }
         // If there are channels on the server that we received back
@@ -159,13 +174,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     li = document.createElement('li');
                     li.innerHTML = `${data['serverChannels'][i]}`;
                     li.className = 'channelLink';
-                    // Store string in a variable so value doesn't change for onclick event
-                    const newChannel = data['serverChannels'][i];
-                    const oldChannel = localStorage.getItem('currentChannel');
+                    const channelLinkName = data['serverChannels'][i];
                     li.onclick = function(event) {
                         // Stop form from submitting
                         event.preventDefault();
-                        socket.emit('submit channel change', {'from': oldChannel, 'to': newChannel});
+                        socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                     };
                     document.querySelector('#channels').append(li);
                     // Add channel to client channels list
@@ -196,13 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.innerHTML = `${data['channelName']}`;
                 li.className = 'channelLink';
-                // Store string in a variable so value doesn't change for onclick event
-                const newChannel = data['channelName'];
-                const oldChannel = localStorage.getItem('currentChannel');
+                const channelLinkName = data['channelName'];
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
-                    socket.emit('submit channel change', {'from': oldChannel, 'to': newChannel});
+                    socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                 };
                 document.querySelector('#channels').append(li);
             }
@@ -235,35 +246,36 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('#messages').append(li);
     });
 
-    // When a get sid is announced
-    socket.on('announce get sid', data => {
-        localStorage.setItem('sid', data['sid']);
-    });
+    // When a get messages to delete is announced
+    socket.on('announce get messages to delete', data => {
 
-    // When a get my messages is announced
-    socket.on('announce get my messages', data => {
         // If there were messages returned
         if (data['messageList'].length > 0) {
+
+            // Disable the delete message buttons
+            document.querySelector('#deleteButton').disabled = true;
+
             // List the user's messages
-            document.querySelector('#deleteHeading').innerHTML = 'Click on a message to delete it from chat:';
+            document.querySelector('#deleteHeading').innerHTML = `<span id='deleteDirections'>Click on a message to delete it from chat:</span>`;
             var li;
             for (i = 0; i < data['messageList'].length; i++) {
                 li = document.createElement('li');
                 li.innerHTML = `<span class='screenname'>${data['messageList'][i].displayName}</span> [${data['messageList'][i].timestamp}]: ${data['messageList'][i].text}`;
                 li.className = 'deleteMessage';
-                const channelName = localStorage.getItem('currentChannel');
-                const sid = data['messageList'][i].sid;
                 const msgID = data['messageList'][i].id;
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
-                    socket.emit('submit delete message', {'channelName': channelName, 'msgID': msgID});
+                    socket.emit('submit delete message', {'channelName': localStorage.getItem('currentChannel'), 'msgID': msgID});
                     // Clear messages to delete from screen
                     document.querySelector('#deleteHeading').innerHTML = '';
                     document.querySelector('#deletees').innerHTML = '';
+                    // Re-enable delete message button
+                    document.querySelector('#deleteButton').disabled = false;
                 };
                 document.querySelector('#deletees').append(li);
             }
+
             // Create a return link back from the 'delete messages' screen
             li = document.createElement('li');
             li.innerHTML = `<span id='deleteReturnLink'>Click here</span> to return.`;
@@ -274,9 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear messages to delete from screen
                 document.querySelector('#deleteHeading').innerHTML = '';
                 document.querySelector('#deletees').innerHTML = '';
+                // Re-enable delete message button
+                document.querySelector('#deleteButton').disabled = false;
             };
             document.querySelector('#deletees').append(li);
         }
+
+        // If there were no messages returned from the server
         else {
             alert('You have no messages to delete from this session.');
         }
@@ -284,8 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When a delete message is announced
     socket.on('announce delete message', data => {
-        // Clear messages with deleted messages
+
+        // Clear old messages from page
         document.querySelector('#messages').innerHTML = '';
+
         // Repopulate messages with deleted messages removed
         var li;
         for (i = 0; i < data['messageList'].length; i++) {

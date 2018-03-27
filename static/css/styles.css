@@ -94,6 +94,10 @@ ul {
     font-size: 17px;
 }
 
+.deleteMessage {
+    font-size: 17px;
+}
+
 .screenname {
     font-weight: bold;
     font-size: 16px;
@@ -111,4 +115,8 @@ ul {
 #deleteReturn {
     padding-top: 12px;
     font-size: 20px;
+}
+
+#deleteDirections {
+    background-color: red;
 }
