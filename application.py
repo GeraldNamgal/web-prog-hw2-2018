@@ -97,7 +97,7 @@ def message(data):
             emit('announce message', {'message': message.__dict__}, room=channel.name)
 
 @socketio.on('submit get messages to delete')
-def getChannels(data):
+def getMessages(data):
     # Return only the user's messages from channel
     for channel in channels:
         if channel.name.lower() == data['channelName'].strip().lower():

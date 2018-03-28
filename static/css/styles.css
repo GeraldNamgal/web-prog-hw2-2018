@@ -121,3 +121,11 @@ ul {
 #deleteDirections {
     background-color: red;
 }
+
+#messages {
+    overflow-wrap: break-word;
+}
+
+#deletees {
+    overflow-wrap: break-word;
+}

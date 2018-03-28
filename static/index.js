@@ -3,10 +3,16 @@ var dict = {'currentChannel': localStorage.getItem('currentChannel'), 'displayNa
 var channels = `channels: ${localStorage.getItem('channels')}`;
 
 document.addEventListener('DOMContentLoaded', () => {
-// Client-specific code
+/* Client-specific code */
 
     // Global variables
     const defaultChannel = 'general';
+    const defaultDisplayName = 'Anonymous';
+    // Limits to how much user can type in
+    const messageLimit = 500;
+    const channelLimit = 30;
+    const displayNameLimit = 30;
+
 
     // By default, buttons are disabled except for delete button
     document.querySelectorAll('button').forEach(button => {
@@ -38,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('#channelButton').disabled = true;
     };
 
-// Socket or client-server interface code starts here:
+/* Socket or client-server interface code starts here: */
 
     // Connect to websocket
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
@@ -67,74 +73,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // When user first opens app give them a default display name if they don't already have one
         if(!localStorage.getItem('displayName'))
-            localStorage.setItem('displayName', 'Anonymous');
+            localStorage.setItem('displayName', defaultDisplayName);
 
         // Change display name button accordingly
-        if(localStorage.getItem('displayName') == 'Anonymous')
+        if(localStorage.getItem('displayName') == defaultDisplayName)
             document.getElementById('displayNameButton').innerHTML = 'Create Display Name';
         else
             document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
 
         // When a user submits a channel to create
         document.querySelector('#newChannel').onsubmit = function(event) {
+            // Stop form from submitting
+            event.preventDefault();
             // Retrieve channel name
             const channelName = document.querySelector('#channelName').value;
+            if (channelName.length > channelLimit)
+                alert(`Please enter a channel name up to ${channelLimit} characters in length.`);
             // Alert server of the create channel event
-            socket.emit('submit new channel', {'channelName': channelName});
+            else
+                socket.emit('submit new channel', {'channelName': channelName});
             // Clear input field and disable button again
             document.querySelector('#channelName').value = '';
             document.querySelector('#channelButton').disabled = true;
-            // Stop form from submitting
-            event.preventDefault();
         };
 
         // When a user submits a message
         document.querySelector('#newMessage').onsubmit = function(event) {
+            // Stop form from submitting
+            event.preventDefault();
             // Retrieve message
             const message = document.querySelector('#message').value;
+            if (message.length > messageLimit)
+                alert(`Please enter a message up to ${messageLimit} characters in length.`);
             // Alert the server of a message-has-been-submitted event
-            socket.emit('submit message', {'channelName': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'message': message, 'sid': localStorage.getItem('sid')});
+            else
+                socket.emit('submit message', {'channelName': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'message': message, 'sid': localStorage.getItem('sid')});
             // Clear input field and disable button again
             document.querySelector('#message').value = '';
             document.querySelector('#messageButton').disabled = true;
-            // Stop form from submitting
-            event.preventDefault();
         };
 
         // When a user submits a display name
         document.querySelector('#newDisplayName').onsubmit = function(event) {
+            // Stop form from submitting
+            event.preventDefault();
             // Retrieve display name
             const displayName = document.querySelector('#displayName').value;
-            // Change the text on the submit button
-            document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
-            // Add display name to local storage
-            localStorage.setItem('displayName', displayName.trim());
+            if (displayName.length > displayNameLimit)
+                alert(`Please enter a display name up to ${displayNameLimit} characters in length.`);
+            else {
+                // Change the text on the submit button
+                document.getElementById('displayNameButton').innerHTML = 'Change Display Name';
+                // Add display name to local storage
+                localStorage.setItem('displayName', displayName.trim());
+                // Alert user that display name was changed
+                alert('Display name was updated.');
+            }
             // Clear input field and disable button again
             document.querySelector('#displayName').value = '';
             document.querySelector('#displayNameButton').disabled = true;
-            // Stop form from submitting
-            event.preventDefault();
-            // Alert user that display name was changed
-            alert('Display name was updated.');
         };
 
-        // When a user hits the Delete Messages button
+        // When a user hits the Delete Message button
         document.querySelector('#deleteButton').onclick = function() {
             socket.emit('submit get messages to delete', {'channelName': localStorage.getItem('currentChannel'), 'sid': localStorage.getItem('sid')});
         };
     });
 
-// Responding-to-server code starts here:
+/* Responding-to-server code starts here: */
 
     // When a get sid is announced
     socket.on('announce get sid', data => {
         localStorage.setItem('sid', data['sid']);
     });
 
+    // When synchronize channels is announced
     // (Code referenced from: https://www.kirupa.com/html5/storing_and_retrieving_an_array_from_local_storage.htm)
     socket.on('announce synchronize channels', data => {
+
         // Clear channels in list (in case refresh occurs, etc.) to avoid duplicating list on page
         document.querySelector('#channels').innerHTML = '';
+
         // Retrieve channels that are already in local storage
         var clientChannels = [];
         if (localStorage.getItem('channels')) {
@@ -142,8 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Convert retrieved data from local storage to an array
             clientChannels = JSON.parse(retrievedData);
         }
+
         // Declare an 'li' tag variable to put channels on page
         var li;
+
         // If there were channels in local storage
         if (clientChannels.length > 0) {
             // Populate list of channels from local storage to the page
@@ -159,12 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 document.querySelector('#channels').append(li);
             }
+
             // If there are client channels that aren't on server, create them on server
             for (i = 0; i < clientChannels.length; i++) {
                 if (!data['serverChannels'].includes(clientChannels[i]))
                     socket.emit('submit new channel', {'channelName': clientChannels[i]});
             }
         }
+
         // If there are channels on the server that we received back
         if (data['serverChannels'].length > 0) {
             // If there are channels on server that aren't on client, add them to client channels and to page
@@ -197,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             var retrievedData = localStorage.getItem('channels');
             clientChannels = JSON.parse(retrievedData);
         }
+
         // If there are channels in local storage
         if (clientChannels.length > 0) {
             // If channel is new to client
@@ -300,10 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When a delete message is announced
     socket.on('announce delete message', data => {
-
         // Clear old messages from page
         document.querySelector('#messages').innerHTML = '';
-
         // Repopulate messages with deleted messages removed
         var li;
         for (i = 0; i < data['messageList'].length; i++) {
