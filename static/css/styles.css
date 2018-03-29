@@ -57,11 +57,6 @@ ul {
     background-color: SeaShell;
 }
 
-#privateHeading {
-    background-color: SeaShell;
-    font-size: 23px;
-}
-
 #channels {
     padding-left: 0;
 }
@@ -122,10 +117,6 @@ ul {
     background-color: red;
 }
 
-#messages {
-    overflow-wrap: break-word;
-}
-
-#deletees {
+#messages, #deletees {
     overflow-wrap: break-word;
 }

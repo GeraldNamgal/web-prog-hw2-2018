@@ -1,7 +1,3 @@
-// Debugging tools:
-var dict = {'currentChannel': localStorage.getItem('currentChannel'), 'displayName': localStorage.getItem('displayName'), 'sid': localStorage.getItem('sid')};
-var channels = `channels: ${localStorage.getItem('channels')}`;
-
 document.addEventListener('DOMContentLoaded', () => {
 /* Client-specific code */
 
@@ -12,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageLimit = 500;
     const channelLimit = 30;
     const displayNameLimit = 30;
-
 
     // By default, buttons are disabled except for delete button
     document.querySelectorAll('button').forEach(button => {
@@ -52,18 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // When connected, configure buttons
     socket.on('connect', () => {
 
-        console.log('- When client first connects to server, local variables:');
-        console.log(dict);
-        console.log(channels);
-
         // Get client's session id
         socket.emit('submit get sid');
 
         // Synchronize the channels between client and server
         socket.emit('submit synchronize channels');
-
-        console.log(`- After synchronize channels called, local channels:`);
-        console.log(channels);
 
         // If user is new, take them to default channel, else take them to channel they were on previously
         if(!localStorage.getItem('currentChannel'))
@@ -150,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // When synchronize channels is announced
     // (Code referenced from: https://www.kirupa.com/html5/storing_and_retrieving_an_array_from_local_storage.htm)
     socket.on('announce synchronize channels', data => {
-
         // Clear channels in list (in case refresh occurs, etc.) to avoid duplicating list on page
         document.querySelector('#channels').innerHTML = '';
 
@@ -176,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
+                    // Alert server of channel change event
                     socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                 };
                 document.querySelector('#channels').append(li);
@@ -184,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If there are client channels that aren't on server, create them on server
             for (i = 0; i < clientChannels.length; i++) {
                 if (!data['serverChannels'].includes(clientChannels[i]))
+                    // Alert server of new channel event
                     socket.emit('submit new channel', {'channelName': clientChannels[i]});
             }
         }
@@ -201,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     li.onclick = function(event) {
                         // Stop form from submitting
                         event.preventDefault();
+                        // Alert server of channel change event
                         socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                     };
                     document.querySelector('#channels').append(li);
@@ -237,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
+                    // Alert server of channel change event
                     socket.emit('submit channel change', {'from': localStorage.getItem('currentChannel'), 'to': channelLinkName});
                 };
                 document.querySelector('#channels').append(li);
@@ -264,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When a new message is announced
     socket.on('announce message', data => {
+        // Add message to messages on page
         const li = document.createElement('li');
         li.innerHTML = `<span class='screenname'>${data['message'].displayName}</span> [${data['message'].timestamp}]: ${data['message'].text}`;
         li.className = 'singleMessage';
@@ -272,7 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When a get messages to delete is announced
     socket.on('announce get messages to delete', data => {
-
         // If there were messages returned
         if (data['messageList'].length > 0) {
 
@@ -290,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.onclick = function(event) {
                     // Stop form from submitting
                     event.preventDefault();
+                    // Alert server of delete message event
                     socket.emit('submit delete message', {'channelName': localStorage.getItem('currentChannel'), 'msgID': msgID});
                     // Clear messages to delete from screen
                     document.querySelector('#deleteHeading').innerHTML = '';

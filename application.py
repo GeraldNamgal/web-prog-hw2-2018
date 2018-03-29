@@ -18,16 +18,11 @@ messageLimit = 100
 
 @app.route('/')
 def index():
-
-    print(f'\n- On load, channels are:', file=sys.stderr)
-    for channel in channels:
-        print(f'{channel.name}', file=sys.stderr)
-    print('\n', file=sys.stderr)
-
     return render_template('index.html')
 
 @socketio.on('submit get sid')
 def getSID():
+    # Return SID to client
     sid = request.sid
     emit('announce get sid', {'sid': sid})
 
@@ -37,12 +32,6 @@ def syncChannels():
     serverChannels = []
     for channel in channels:
         serverChannels.append(channel.name)
-
-    print(f'\n- synchronize channels was called, sending back:', file=sys.stderr)
-    for channel in serverChannels:
-        print(f'{channel}', file=sys.stderr)
-    print('\n', file=sys.stderr)
-
     emit('announce synchronize channels', {'serverChannels': serverChannels})
 
 @socketio.on('submit new channel')
@@ -60,23 +49,17 @@ def newChannel(data):
 
 @socketio.on('submit channel change')
 def channelChange(data):
-
     if 'from' in data and data['from'] is not None:
-        # Remove user from current channel (if exists) if already on a channel
+        # Remove user from current channel (if exists) if user is currently on a channel
         for channel in channels:
             if channel.name.lower() == data['from'].strip().lower():
                 leave_room(data['from'].strip())
-                print(f"\nleft room {data['from'].strip()}", file=sys.stderr)
-                print('\n', file=sys.stderr)
                 break
-
     if 'to' in data and data['to'] is not None:
         # Switch user to channel requested (if exists) and get channel's list of messages to send back to client
         for channel in channels:
             if channel.name.lower() == data['to'].strip().lower():
                 join_room(data['to'].strip())
-                print(f"\njoined room {data['to'].strip()}", file=sys.stderr)
-                print('\n', file=sys.stderr)
                 messageList = []
                 for message in channel.messages:
                     messageList.append(message.__dict__)
