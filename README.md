@@ -18,3 +18,5 @@ My personal touch is that users are allowed to delete messages. They can do this
 only on current sessions. So if they close the browser and return, they will no
 longer be able to delete the messages they've already submitted. There's a
 button on the app that users can press labelled Delete a Message for this.
+
+I used Google Chrome for testing and developing.
